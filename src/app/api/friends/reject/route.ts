@@ -1,3 +1,4 @@
+import { QueryDB } from "@/enum";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
@@ -16,7 +17,7 @@ export const POST = async (req: Request) => {
     const { id: idToReject } = z.object({ id: z.string() }).parse(body);
 
     await db.srem(
-      `user:${session.user.id}:incoming_friend_request`,
+      `${QueryDB.USER}:${session.user.id}:${QueryDB.INCOMING_FRIEND_REQUEST}`,
       idToReject
     );
 

@@ -1,3 +1,4 @@
+import { QueryDB } from "@/enum";
 import { fetchRedis } from "@/helpers/redis";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -18,7 +19,7 @@ export const POST = async (req: Request) => {
 
     const isAlreadyFriends = await fetchRedis(
       "sismember",
-      `user:${session.user.id}:friends`,
+      `${QueryDB.USER}:${session.user.id}:${QueryDB.FRIENDS}`,
       idToAdd
     );
 
@@ -28,7 +29,7 @@ export const POST = async (req: Request) => {
 
     const hasFriendRequests = await fetchRedis(
       "sismember",
-      `user:${session.user.id}:incoming_friend_request`,
+      `${QueryDB.USER}:${session.user.id}:${QueryDB.INCOMING_FRIEND_REQUEST}`,
       idToAdd
     );
 
@@ -36,11 +37,20 @@ export const POST = async (req: Request) => {
       return new Response("No friend requests", { status: 400 });
     }
 
-    await db.sadd(`user:${session.user.id}:friends`, idToAdd);
-    await db.sadd(`user:${idToAdd}:friends`, session.user.id);
+    await db.sadd(
+      `${QueryDB.USER}:${session.user.id}:${QueryDB.FRIENDS}`,
+      idToAdd
+    );
+    await db.sadd(
+      `${QueryDB.USER}:${idToAdd}:${QueryDB.FRIENDS}`,
+      session.user.id
+    );
 
-    // await db.srem(`user:${idToAdd}:outbound_friend_request`, session.user.id);
-    await db.srem(`user:${session.user.id}:incoming_friend_request`, idToAdd);
+    // await db.srem(`${QueryDB.USER}:${idToAdd}:${QueryDB.OUTBOUND_FRIEND_REQUEST}`, session.user.id);
+    await db.srem(
+      `${QueryDB.USER}:${session.user.id}:${QueryDB.INCOMING_FRIEND_REQUEST}`,
+      idToAdd
+    );
 
     return new Response("Success add friend");
   } catch (error) {

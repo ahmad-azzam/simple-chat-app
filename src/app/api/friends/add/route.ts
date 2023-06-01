@@ -1,3 +1,4 @@
+import { QueryDB } from "@/enum";
 import { fetchRedis } from "@/helpers/redis";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -42,7 +43,7 @@ export const POST = async (req: Request) => {
 
     const isAlreadyAdded = await fetchRedis(
       "sismember",
-      `user:${idToAdd}:incoming_friend_request`,
+      `${QueryDB.USER}:${idToAdd}:${QueryDB.INCOMING_FRIEND_REQUEST}`,
       session.user.id
     );
 
@@ -52,7 +53,7 @@ export const POST = async (req: Request) => {
 
     const isAlreadyFriends = await fetchRedis(
       "sismember",
-      `user:${session.user.id}:friends`,
+      `${QueryDB.USER}:${session.user.id}:${QueryDB.FRIENDS}`,
       idToAdd
     );
 
@@ -62,7 +63,10 @@ export const POST = async (req: Request) => {
       });
     }
 
-    db.sadd(`user:${idToAdd}:incoming_friend_request`, session.user.id);
+    await db.sadd(
+      `${QueryDB.USER}:${idToAdd}:${QueryDB.INCOMING_FRIEND_REQUEST}`,
+      session.user.id
+    );
     return new Response("Successfully added this user", { status: 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
